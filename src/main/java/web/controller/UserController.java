@@ -1,5 +1,6 @@
 package web.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,17 +30,17 @@ public class UserController {
     }
 
     @GetMapping("/index")
-    public String indexPage() {
-        return "index";
+    public ModelAndView indexPage() {
+        ModelAndView model = new ModelAndView();
+        model.setViewName("index");
+        return model;
     }
 
-    @GetMapping("/admin")
+    @GetMapping(value = "/admin", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ModelAndView showAdminPage() {
-        ModelAndView model = new ModelAndView();
-        model.addObject("users", userService.getAllUser());
-        model.setViewName("admin");
-        return model;
+    public List<User> getAllUsers() {
+        List<User> users = userService.getAllUser();
+        return users;
     }
 
     @GetMapping("/user")
@@ -59,7 +60,8 @@ public class UserController {
     }
 
     @PostMapping("/admin")
-    public ModelAndView addUser(@ModelAttribute("user") User user, BindingResult bindingResult) {
+    public ModelAndView addUser(@ModelAttribute("user") User user, BindingResult bindingResult,
+                                @RequestParam Map<String, String> form) {
         ModelAndView model = new ModelAndView();
         model.setViewName("addUser");
 
@@ -80,8 +82,16 @@ public class UserController {
             return model;
         }
 
-        model.setViewName("redirect:/admin");
+        List<Role> roles = roleService.getAllRoles();
+
+        for (String key : form.values()) {
+            if (roles.stream().anyMatch(role -> role.getName().equals(key))) {
+                user.getRoles().add(roleService.findByName(key));
+            }
+        }
+        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         userService.saveUser(user);
+        model.setViewName("redirect:/index");
         return model;
     }
 
@@ -105,7 +115,7 @@ public class UserController {
         }
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         userService.saveUser(user);
-        model.setViewName("redirect:/admin");
+        model.setViewName("redirect:/index");
         return model;
     }
 
@@ -116,7 +126,7 @@ public class UserController {
         Long id = Long.valueOf(id1);
         User userFromDB = userService.findById(id);
         userService.removeUser(userFromDB);
-        model.setViewName("redirect:/admin");
+        model.setViewName("redirect:/index");
         return model;
     }
 }
