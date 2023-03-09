@@ -14,4 +14,8 @@ class DBUserDetailsServiceTest {
     public void test2() {
         assertTrue(true);
     }
+    @Test
+    public void test3() {
+        assertTrue(true);
+    }
 }
