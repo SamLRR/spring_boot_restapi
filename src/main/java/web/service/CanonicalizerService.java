@@ -1,8 +1,8 @@
 package web.service;
 
 
-import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -52,34 +52,19 @@ public class CanonicalizerService {
     }
 
 
-    public static String canon(String xml) throws Exception {
-        org.apache.xml.security.Init.init();
-        Canonicalizer canonicalizer = Canonicalizer.getInstance(ALGO_ID_C14N_OMIT_COMMENTS);
-        canonicalizer.canonicalize(XML.getBytes(), new FileOutputStream("normalfile.txt"), false);
-        return xml;
-    }
-
     public static String canon2(String path) throws Exception {
         org.apache.xml.security.Init.init();
+        Document document = convertStringToDocument("C:\\proj\\java\\canonicalizer\\file1.xml");
+        String string = convertDocumentToString(document);
 
-        File file = new File(path);
-        FileInputStream fis = new FileInputStream(file);
-        byte[] buf = new byte[(int) file.length()];
-        fis.read(buf);
-        fis.close();
-        Canonicalizer canonicalizer = Canonicalizer.getInstance(ALGO_ID_C14N_OMIT_COMMENTS);
-        FileOutputStream fos = new FileOutputStream("normalfile1.txt");
-        canonicalizer.canonicalize(buf, fos, false);
-        file = new File("C:\\proj\\java\\canonicalizer\\normalfile1.txt");
-        fis = new FileInputStream(file);
-        buf = new byte[(int) file.length()];
-        fis.read(buf);
-        fis.close();
 
-//        byte[] buf = new byte[path.length()];
-//        byte[] bytes = Base64.encodeBase64(buf);
+        try (ByteArrayOutputStream buf = new ByteArrayOutputStream()) {
+            Canonicalizer canonicalizer = Canonicalizer.getInstance(ALGO_ID_C14N_OMIT_COMMENTS);
+            canonicalizer.canonicalize(string.getBytes(), buf, false);
+            string = buf.toString();
+        }
 
-        return new String(Base64.encodeBase64(buf));
+        return string;
     }
 
     public static Document convertStringToDocument(final String filename) throws ParserConfigurationException, TransformerConfigurationException {
