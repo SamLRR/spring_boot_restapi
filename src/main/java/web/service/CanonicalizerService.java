@@ -45,6 +45,7 @@ public class CanonicalizerService {
         String signValue = canon2("C:\\proj\\java\\canonicalizer\\file2.xml");
 
 
+
         System.out.println(signValue);
 
 
